@@ -1,0 +1,15 @@
+{
+  "type": "bundle",
+  "id": "bundle--sap-demo",
+  "objects": [
+    {
+      "type": "vulnerability",
+      "id": "vulnerability--sap-demo-001",
+      "name": "SAP NetWeaver Vulnerability",
+      "description": "Critical vulnerability in SAP NetWeaver 7.50 affecting a production system.",
+      "x_cpe23": [
+        "cpe:2.3:a:sap:netweaver:7.50:*:*:*:*:*:*:*"
+      ]
+    }
+  ]
+}

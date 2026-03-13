@@ -1,0 +1,17 @@
+AccountID;EmployeeID;lastName;givenName;Team;Function;SortingAttribute
+3100;100;Hansen; Jestine;Contracts negotiation;Teamlead Negotiator;A
+3101;101;Rohrich; Andreas;Contracts negotiation;Negotiator;B
+3102;102;Aksenfeld; Alex;Contracts negotiation;Negotiator;C
+3103;103;Roppel; Eckard;Contracts negotiation;Junior Negotiator;D
+3104;104;Andreen; Corrine;Contracts negotiation;Senior Negotiator Asia;E
+3105;105;Cordrey; Darlene;Contracts negotiation;Senior Negotiator North America & Europe;F
+3106;106;Lessing; Ulrich;Legal consulting;Senior Legal Consultant North America & Europe;G
+3107;107;Schindler; Christine;Legal consulting;Senior Legal Consultant Asia;H
+3108;108;Havertz; Veera;Legal consulting;Teamlead Legal Consultant;I
+3109;109;Kistler; Olivia;Legal consulting;Legal Consultant;J
+3110;110;Stein; Carsten;Contracts template creation;Teamlead Template Creation;K
+3111;111;Steinbinder; Elrike;Contracts template creation;Template Creation;L
+3112;112;Eigenstein; Bernhard;Contracts template creation;Template Creation;M
+3113;113;Stone; Sophie;Contracts template creation;Template Creation;N
+3114;114;Schreibhuber; Herbert;Sales;Secretary;O
+3115;115;Horex; Werner;Sales;Trainee;P

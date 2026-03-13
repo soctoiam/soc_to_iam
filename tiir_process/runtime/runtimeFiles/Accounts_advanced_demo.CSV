@@ -1,0 +1,20 @@
+AccountID;EmployeeID;lastName;givenName;Team;Function;SortingAttribute;AssignedPermissions;OwnedGroups;OwnedRoles;SupervisorAccountID;Availability
+3100;100;Hansen; Jestine;Contracts negotiation;Teamlead Negotiator;A;;;;;available
+3101;101;Rohrich; Andreas;Contracts negotiation;Negotiator;B;;;;;available
+3102;102;Aksenfeld; Alex;Contracts negotiation;Negotiator;C;;;;;available
+3103;103;Roppel; Eckard;Contracts negotiation;Junior Negotiator;D;;;;;available
+3104;104;Andreen; Corrine;Contracts negotiation;Senior Negotiator Asia;E;;;;;available
+3105;105;Cordrey; Darlene;Contracts negotiation;Senior Negotiator North America & Europe;F;;;;;available
+3106;106;Lessing; Ulrich;Legal consulting;Senior Legal Consultant North America & Europe;G;;;;;available
+3107;107;Schindler; Christine;Legal consulting;Senior Legal Consultant Asia;H;;;;;available
+3108;108;Havertz; Veera;Legal consulting;Teamlead Legal Consultant;I;;;;;available
+3109;109;Kistler; Olivia;Legal consulting;Legal Consultant;J;;;;;available
+3110;110;Stein; Carsten;Contracts template creation;Teamlead Template Creation;K;;;;;available
+3111;111;Steinbinder; Elrike;Contracts template creation;Template Creation;L;;;;;available
+3112;112;Eigenstein; Bernhard;Contracts template creation;Template Creation;M;;;;;available
+3113;113;Stone; Sophie;Contracts template creation;Template Creation;N;;;;;available
+3114;114;Schreibhuber; Herbert;Sales;Secretary;O;;;;;available
+3115;115;Horex; Werner;Sales;Trainee;P;;;;;available
+4000;999;Hartmann; Lukas;SAP Basis;Domain Expert;SAP_BASIS;2000.0;sap-basis-admins;domain-expert;4001.0;unavailable
+4001;998;Vogt; Claudia;SAP Platform;Team Lead;SAP_PLATFORM_LEAD;;sap-platform-leads;team-lead;;available
+4002;997;Reuter; Jan;SAP Change;Domain Expert;SAP_CHANGE;;sap-change-admins;domain-expert;4001.0;unavailable

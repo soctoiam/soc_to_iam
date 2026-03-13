@@ -1,0 +1,42 @@
+{
+  "type": "bundle",
+  "id": "bundle--2c7c9f70-1b66-4b49-9a5b-6af8c6a2e6c7",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0b4c3f5c-3c6f-4e7e-8a7a-3a6c7afdd0a1",
+      "created": "2025-12-13T10:00:00.000Z",
+      "modified": "2025-12-13T10:00:00.000Z",
+      "name": "Command and Scripting Interpreter",
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries on a target system.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "url": "https://attack.mitre.org/techniques/T1059/",
+          "external_id": "T1059"
+        }
+      ]
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--3c4b2a7b-4d7f-4d0a-9e3e-91fb0a6f9a6e",
+      "created": "2025-12-13T10:00:00.000Z",
+      "modified": "2025-12-13T10:00:00.000Z",
+      "name": "CVE-2021-44228",
+      "description": "Apache Log4j2 JNDI features could allow remote code execution under certain conditions (commonly referred to as Log4Shell).",
+      "external_references": [
+        {
+          "source_name": "nvd",
+          "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+          "external_id": "CVE-2021-44228"
+        }
+      ],
+      "x_cpe23": [
+        "cpe:2.3:a:apache:log4j:*:*:*:*:*:*:*:*"
+      ]
+    }
+  ]
+}

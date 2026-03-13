@@ -1,0 +1,33 @@
+ID;Entitlement;Software_System;Sorting;Criticality;Governed_Object;OwnerGroup;OwnerRole
+1000;Outlook Email Tool;;A;LOW;Outlook Email Tool;;
+1001;Teams Chat Tool;;B;LOW;Teams Chat Tool;;
+1002;;;C;;;;
+1003;"Write access to: ""E:\\Documents\Contract_templates\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;D;HIGH;"Write access to: ""E:\\Documents\Contract_templates\""";;
+1004;"Read access to: ""E:\\Documents\Contract_templates\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;E;MEDIUM;"Read access to: ""E:\\Documents\Contract_templates\""";;
+1005;Citrix: Remote acccess cust. 26;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;F;MEDIUM;Citrix: Remote acccess cust. 26;;
+1006;Citrix: Remote acccess cust. 17;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;G;MEDIUM;Citrix: Remote acccess cust. 17;;
+1007;Citrix: Remote acccess cust. 8;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;H;MEDIUM;Citrix: Remote acccess cust. 8;;
+1008;Citrix: Remote acccess cust. 26 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;I;HIGH;Citrix: Remote acccess cust. 26 ADMIN;;
+1009;Citrix: Remote acccess cust. 17 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;J;HIGH;Citrix: Remote acccess cust. 17 ADMIN;;
+1010;Citrix: Remote acccess cust. 8 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;K;HIGH;Citrix: Remote acccess cust. 8 ADMIN;;
+1011;Fortinet ADMIN access;cpe:2.3:o:fortinet:fortios:7.0:*:*:*:*:*:*:*;L;VERY_HIGH;Fortinet ADMIN access;;
+1012;AD Directory ADMIN;cpe:2.3:a:microsoft:active_directory:2019:*:*:*:*:*:*:*;M;VERY_HIGH;AD Directory ADMIN;;
+1013;"Read access to: ""E:\\Documents\Old_contracts\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;N;MEDIUM;"Read access to: ""E:\\Documents\Old_contracts\""";;
+1014;"Write access to: ""E:\\Documents\Old_contracts\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;O;HIGH;"Write access to: ""E:\\Documents\Old_contracts\""";;
+1015;;;P;;;;
+1016;"[Read]: Customer database query ""North America""";cpe:2.3:a:postgresql:postgresql:13.3:*:*:*:*:*:*:*;Q;HIGH;"[Read]: Customer database query ""North America""";;
+1017;"[Read:] Customer database query ""Europe""";cpe:2.3:a:postgresql:postgresql:13.3:*:*:*:*:*:*:*;R;HIGH;"[Read:] Customer database query ""Europe""";;
+1018;;;S;;;;
+1019;;;T;;;;
+1020;"Customer database query ""Asia""";;U;;"Customer database query ""Asia""";;
+1021;Employee Financial Reward Approval Team Contracts Negotiation;;V;;Employee Financial Reward Approval Team Contracts Negotiation;;
+1022;Employee Financial Reward Approval Team Contracts Template Creation;;W;;Employee Financial Reward Approval Team Contracts Template Creation;;
+1023;Employee Financial Reward Approval Team Legal Consulting;;X;;Employee Financial Reward Approval Team Legal Consulting;;
+1024;Payments Letters and Parcels;;Y;;Payments Letters and Parcels;;
+1025;Payments S.B Coffee Delivery Services;;Z;;Payments S.B Coffee Delivery Services;;
+1026;"Read access to: ""E:\\Documents\Corporate_Design\""";;ZA;;"Read access to: ""E:\\Documents\Corporate_Design\""";;
+1027;"""CharoLingua"" Language Translation Tool";;ZB;;"""CharoLingua"" Language Translation Tool";;
+1028;"""ConsiliumC"" Contract Design Manual";;ZC;;"""ConsiliumC"" Contract Design Manual";;
+1029;Adobe Photoshop License;;ZD;;Adobe Photoshop License;;
+2000;SAP NetWeaver Production Administration;cpe:2.3:a:sap:netweaver:7.50:*:*:*:*:*:*:*;SAP_BASIS;HIGH;SAP-NW-750-PROD;sap-basis-admins;domain-expert
+2001;SAP NetWeaver Change Management;cpe:2.3:a:sap:netweaver:7.50:*:*:*:*:*:*:*;SAP_CHANGE;MEDIUM;SAP-NW-750-CHANGE;sap-change-admins;domain-expert

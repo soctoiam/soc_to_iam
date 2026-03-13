@@ -1,0 +1,31 @@
+ID;Entitlement;Software_System;Sorting;Criticality
+1000;Outlook Email Tool;;A;LOW
+1001;Teams Chat Tool;;B;LOW
+1002;;;C;
+1003;"Write access to: ""E:\\Documents\Contract_templates\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;D;HIGH
+1004;"Read access to: ""E:\\Documents\Contract_templates\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;E;MEDIUM
+1005;Citrix: Remote acccess cust. 26;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;F;MEDIUM
+1006;Citrix: Remote acccess cust. 17;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;G;MEDIUM
+1007;Citrix: Remote acccess cust. 8;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;H;MEDIUM
+1008;Citrix: Remote acccess cust. 26 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;I;HIGH
+1009;Citrix: Remote acccess cust. 17 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;J;HIGH
+1010;Citrix: Remote acccess cust. 8 ADMIN;cpe:2.3:a:citrix:virtual_apps_and_desktops:1912:*:*:*:*:*:*:*;K;HIGH
+1011;Fortinet ADMIN access;cpe:2.3:o:fortinet:fortios:7.0:*:*:*:*:*:*:*;L;VERY_HIGH
+1012;AD Directory ADMIN;cpe:2.3:a:microsoft:active_directory:2019:*:*:*:*:*:*:*;M;VERY_HIGH
+1013;"Read access to: ""E:\\Documents\Old_contracts\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;N;MEDIUM
+1014;"Write access to: ""E:\\Documents\Old_contracts\""";cpe:2.3:o:microsoft:windows_server:2022:*:*:*:*:*:*:*;O;HIGH
+1015;;;P;
+1016;"[Read]: Customer database query ""North America""";cpe:2.3:a:postgresql:postgresql:13.3:*:*:*:*:*:*:*;Q;HIGH
+1017;"[Read:] Customer database query ""Europe""";cpe:2.3:a:postgresql:postgresql:13.3:*:*:*:*:*:*:*;R;HIGH
+1018;;;S;
+1019;;;T;
+1020;"Customer database query ""Asia""";;U;
+1021;Employee Financial Reward Approval Team Contracts Negotiation;;V;
+1022;Employee Financial Reward Approval Team Contracts Template Creation;;W;
+1023;Employee Financial Reward Approval Team Legal Consulting;;X;
+1024;Payments Letters and Parcels;;Y;
+1025;Payments S.B Coffee Delivery Services;;Z;
+1026;"Read access to: ""E:\\Documents\Corporate_Design\""";;ZA;
+1027;"""CharoLingua"" Language Translation Tool";;ZB;
+1028;"""ConsiliumC"" Contract Design Manual";;ZC;
+1029;Adobe Photoshop License;;ZD;
