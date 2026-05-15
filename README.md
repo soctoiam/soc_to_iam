@@ -2,7 +2,7 @@ SOC2IAM
 
 This repository contains a Proof of Concept (PoC) for an end-to-end automated Threat Intelligence pipeline. The system processes unstructured threat reports (text), extracts technical indicators (CPEs & MITRE ATT&CK Techniques) using local LLMs, and automatically applies mitigation rules to a simulated IT infrastructure (CSV assets).
 
-This repository also contains simulation to measure the MTTCA of the TIIR process vs a manual SOC. The used metrics for the simulation and the python file are in the simulation folder.
+This repository also contains a simulation to measure the MTTCA of the TIIR process vs a manual SOC. The used metrics for the simulation and the python file are in the simulation folder. An extra simulation file was added to simulate different IAM data quality thresholds. Interesting results (in our opinion) are: tiir_load_mean.png, tiir_piam_mean.png, tiir_lambda_piam_mean_lines.png, tiir_worker_utilization_vs_lambda.png.
 
 
 Quick Start of the TIIR process (Reviewer Guide)
