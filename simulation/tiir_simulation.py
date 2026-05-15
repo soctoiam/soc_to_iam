@@ -1,22 +1,9 @@
 
 #!/usr/bin/env python3
-"""tiir_des_simulation_simpy_v6_with_plots.py
+"""tiir_des_simulation_simpy.py
 
 SimPy-based discrete-event simulation (DES) for routing-only workflows:
 time-to-correct-assignment (TTCA), extended with v6 load-sweep plots.
-
-Additions relative to tiir_des_simulation_simpy_v6.py
------------------------------------------------------
-1. Restores the missing v3-style load-sweep artifacts with v6 calibration:
-   - tiir_v6_load_sweep.csv
-   - tiir_v6_load_mean.png
-   - tiir_v6_load_p95.png
-   - tiir_v6_load_sla.png
-   - tiir_v6_outcomes_vs_load.png
-   - tiir_v6_reassign_vs_load.png
-2. Preserves the original v6 baseline outputs and analytic snapshots.
-3. Includes a deterministic event-driven fallback when `simpy` is unavailable,
-   so the script can still generate the sweep and plots in minimal environments.
 
 Primary paper calibration:
 - Manual service time per attempt: mean 109.3 min, median 51.5 min, cap 26.3 h
@@ -564,7 +551,7 @@ def aggregate_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
-    analytic_snapshot(cfg).to_csv(os.path.join(outdir, "tiir_v6_analytic_snapshot.csv"), index=False)
+    analytic_snapshot(cfg).to_csv(os.path.join(outdir, "tiir_analytic_snapshot.csv"), index=False)
 
     preset_rows = []
     for preset_name in cfg.timing_preset_sweep:
@@ -573,7 +560,7 @@ def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
         vals = {row["metric"]: row["value"] for _, row in snap.iterrows()}
         vals["timing_preset"] = preset_name
         preset_rows.append(vals)
-    pd.DataFrame(preset_rows).to_csv(os.path.join(outdir, "tiir_v6_timing_preset_snapshot.csv"), index=False)
+    pd.DataFrame(preset_rows).to_csv(os.path.join(outdir, "tiir_timing_preset_snapshot.csv"), index=False)
 
     util_rows = []
     p = params_from_cfg(cfg)
@@ -586,15 +573,15 @@ def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
                 "rho_tiir_lower_bound": lam * (p_abstain + p_auto_misroute) * p.manual_mean_min / (cfg.routers * 60.0),
             }
         )
-    pd.DataFrame(util_rows).to_csv(os.path.join(outdir, "tiir_v6_lower_bound_utilization.csv"), index=False)
+    pd.DataFrame(util_rows).to_csv(os.path.join(outdir, "tiir_lower_bound_utilization.csv"), index=False)
 
 
 def save_des_bundle(cfg: ExperimentConfig, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
     for scenario in ("manual", "tiir"):
         runs = summarize_runs(cfg, scenario)
-        runs.to_csv(os.path.join(outdir, f"tiir_v6_{scenario}_runs.csv"), index=False)
-        aggregate_summary(runs).to_csv(os.path.join(outdir, f"tiir_v6_{scenario}_summary.csv"), index=False)
+        runs.to_csv(os.path.join(outdir, f"tiir_{scenario}_runs.csv"), index=False)
+        aggregate_summary(runs).to_csv(os.path.join(outdir, f"tiir_{scenario}_summary.csv"), index=False)
 
 
 def load_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
@@ -630,7 +617,7 @@ def load_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
                         }
                     )
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(outdir, "tiir_v6_load_sweep.csv"), index=False)
+    df.to_csv(os.path.join(outdir, "tiir_load_sweep.csv"), index=False)
     return df
 
 
@@ -640,9 +627,9 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
 
     for metric, fname, ylabel in [
-        ("mean_ttca", "tiir_v6_load_mean.png", "Mean TTCA (min)"),
-        ("p95_ttca", "tiir_v6_load_p95.png", "Global P95 TTCA (min)"),
-        ("sla_viol_rate", "tiir_v6_load_sla.png", "SLA violation rate"),
+        ("mean_ttca", "tiir_load_mean.png", "Mean TTCA (min)"),
+        ("p95_ttca", "tiir_load_p95.png", "Global P95 TTCA (min)"),
+        ("sla_viol_rate", "tiir_load_sla.png", "SLA violation rate"),
     ]:
         plt.figure()
         for scenario in ["manual", "tiir"]:
@@ -667,7 +654,7 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Outcome rate")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "tiir_v6_outcomes_vs_load.png"), dpi=200)
+    plt.savefig(os.path.join(outdir, "tiir_outcomes_vs_load.png"), dpi=200)
     plt.close()
 
     plt.figure()
@@ -678,12 +665,12 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Human reassignment rate")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(outdir, "tiir_v6_reassign_vs_load.png"), dpi=200)
+    plt.savefig(os.path.join(outdir, "tiir_reassign_vs_load.png"), dpi=200)
     plt.close()
 
 
 def main() -> None:
-    outdir = os.path.abspath("results_tiir_v6")
+    outdir = os.path.abspath("results_tiir")
     cfg = ExperimentConfig()
 
     save_analytic_bundle(cfg, outdir)
