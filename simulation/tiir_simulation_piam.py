@@ -21,6 +21,7 @@ Additions relative to tiir_des_simulation_simpy_v6.py
    Stale IAM values cause auto-misroutes; missing IAM values cause abstention/manual fallback.
 5. Uses flatter figure geometry for paper-friendly plots.
 6. Adds a joint arrival-rate x IAM-quality sweep for surface/heatmap and selected-line figures.
+7. Adds effective human-router utilization / offered-load analysis that accounts for expected reassignment attempts.
 
 Primary paper calibration:
 - Manual service time per attempt: mean 109.3 min, median 51.5 min, cap 26.3 h
@@ -295,6 +296,41 @@ def outcome_probs(p: SOCSimParams) -> Tuple[float, float, float]:
         raise ValueError(f"Outcome probabilities must sum to 1, got {s}.")
     return p_correct, p_abstain, p_auto_misroute
 
+
+
+def expected_human_attempts_per_ticket(p: SOCSimParams, scenario: Scenario) -> float:
+    """Expected number of human routing service attempts per arriving ticket.
+
+    This is an offered-load diagnostic, not an observed busy-fraction from a finite DES run.
+    It accounts for the expected additional human service attempts caused by reassignment.
+    Reroute delay is intentionally excluded because it is delay outside the human-router resource.
+    """
+    q = 1.0 - p.manual_misroute_rate
+    if not (0.0 < q <= 1.0):
+        raise ValueError("manual success probability must be in (0,1].")
+
+    expected_normal_manual_attempts = 1.0 / q
+
+    if scenario == "manual":
+        return expected_normal_manual_attempts
+
+    p_correct, p_abstain, p_auto_misroute = outcome_probs(p)
+    expected_forced_misroute_attempts = 1.0 + expected_normal_manual_attempts
+    return (p_abstain * expected_normal_manual_attempts) + (p_auto_misroute * expected_forced_misroute_attempts)
+
+
+def effective_worker_utilization(cfg: ExperimentConfig, scenario: Scenario) -> Tuple[float, float, float]:
+    """Return expected attempts/ticket, expected human work/ticket, and effective rho.
+
+    rho_eff = lambda * E[human-router service minutes per ticket] / (routers * 60).
+    Values above 1 indicate that the offered human-routing load exceeds stable worker capacity.
+    """
+    p = params_from_cfg(cfg)
+    attempts = expected_human_attempts_per_ticket(p, scenario)
+    human_work_min = attempts * p.manual_mean_min
+    rho_eff = cfg.arrival_rate_per_hour * human_work_min / (cfg.routers * 60.0)
+    return attempts, human_work_min, rho_eff
+
 def _lognormal_params_from_mean_median(mean: float, median: float) -> Tuple[float, float]:
     if mean <= 0 or median <= 0:
         raise ValueError("mean and median must be > 0")
@@ -343,6 +379,8 @@ def analytic_snapshot(cfg: ExperimentConfig) -> pd.DataFrame:
     ttca_manual_mean = e_attempts * mu + e_reassign * p.reroute_delay_min
     rho_manual_lb = cfg.arrival_rate_per_hour * mu / (cfg.routers * 60.0)
     rho_tiir_lb = cfg.arrival_rate_per_hour * (p_abstain + p_auto_misroute) * mu / (cfg.routers * 60.0)
+    attempts_manual_eff, human_work_manual_eff, rho_manual_eff = effective_worker_utilization(cfg, "manual")
+    attempts_tiir_eff, human_work_tiir_eff, rho_tiir_eff = effective_worker_utilization(cfg, "tiir")
     rows = [
         ("timing_preset", cfg.timing_preset),
         ("manual_mean_min", mu),
@@ -366,6 +404,12 @@ def analytic_snapshot(cfg: ExperimentConfig) -> pd.DataFrame:
         ("ttca_manual_unconditional_mean_min", ttca_manual_mean),
         ("rho_manual_lower_bound", rho_manual_lb),
         ("rho_tiir_lower_bound", rho_tiir_lb),
+        ("expected_human_attempts_manual_eff", attempts_manual_eff),
+        ("expected_human_attempts_tiir_eff", attempts_tiir_eff),
+        ("expected_human_work_min_manual_eff", human_work_manual_eff),
+        ("expected_human_work_min_tiir_eff", human_work_tiir_eff),
+        ("rho_manual_effective_offered_load", rho_manual_eff),
+        ("rho_tiir_effective_offered_load", rho_tiir_eff),
         ("tiir_auto_total_min", p.t_auto_min + p.t_handoff_min),
         ("navy_assisted_total_min", cfg.navy_assisted_total_min),
     ]
@@ -976,6 +1020,125 @@ def plot_joint_lambda_iam_curves(df_joint: pd.DataFrame, outdir: str) -> None:
         plt.close()
 
 
+
+def worker_utilization_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
+    """Analytical effective worker-utilization sweep over lambda and p_iam.
+
+    This diagnostic complements the finite DES output. It is an offered-load / traffic-intensity
+    calculation and can exceed 1.0. The observed DES busy fraction of a finite run cannot exceed 1.0.
+    """
+    os.makedirs(outdir, exist_ok=True)
+    rows: List[dict] = []
+
+    for lam in cfg.lambda_sweep_per_hour:
+        cfg_l = replace(cfg, arrival_rate_per_hour=float(lam))
+        attempts, work_min, rho = effective_worker_utilization(cfg_l, "manual")
+        rows.append(
+            {
+                "lambda_per_hour": float(lam),
+                "p_iam": float("nan"),
+                "scenario": "manual",
+                "expected_human_attempts_per_ticket": attempts,
+                "expected_human_work_min_per_ticket": work_min,
+                "rho_effective_offered_load": rho,
+            }
+        )
+
+        for p_iam in cfg.p_iam_sweep:
+            cfg_cell = replace(cfg, arrival_rate_per_hour=float(lam), p_iam=float(p_iam))
+            attempts, work_min, rho = effective_worker_utilization(cfg_cell, "tiir")
+            rows.append(
+                {
+                    "lambda_per_hour": float(lam),
+                    "p_iam": float(p_iam),
+                    "scenario": "tiir",
+                    "expected_human_attempts_per_ticket": attempts,
+                    "expected_human_work_min_per_ticket": work_min,
+                    "rho_effective_offered_load": rho,
+                }
+            )
+
+    df = pd.DataFrame(rows)
+    df.to_csv(os.path.join(outdir, "tiir_v9_effective_worker_utilization.csv"), index=False)
+    return df
+
+
+def _pivot_worker_utilization(df_util: pd.DataFrame) -> pd.DataFrame:
+    d = df_util[df_util["scenario"] == "tiir"]
+    return d.pivot(index="lambda_per_hour", columns="p_iam", values="rho_effective_offered_load").sort_index().sort_index(axis=1)
+
+
+def plot_worker_utilization(df_util: pd.DataFrame, outdir: str) -> None:
+    """Plot effective worker offered-load utilization.
+
+    Generated figures:
+    - tiir_v9_worker_utilization_vs_lambda.png
+    - tiir_v9_worker_utilization_heatmap.png
+    """
+    import matplotlib.pyplot as plt
+
+    os.makedirs(outdir, exist_ok=True)
+
+    selected_piam = [0.0, 0.5, 0.8, 1.0]
+    available_piam = sorted(float(x) for x in df_util.loc[df_util["scenario"] == "tiir", "p_iam"].dropna().unique())
+    selected_piam = [x for x in selected_piam if x in available_piam]
+
+    plt.figure(figsize=FIGSIZE_FLAT)
+    d_manual = df_util[df_util["scenario"] == "manual"].sort_values("lambda_per_hour")
+    plt.plot(
+        d_manual["lambda_per_hour"],
+        d_manual["rho_effective_offered_load"],
+        marker="o",
+        label="manual",
+        linewidth=LINE_WIDTH,
+        markersize=MARKER_SIZE,
+    )
+    for p_iam in selected_piam:
+        d = df_util[(df_util["scenario"] == "tiir") & (df_util["p_iam"] == p_iam)].sort_values("lambda_per_hour")
+        plt.plot(
+            d["lambda_per_hour"],
+            d["rho_effective_offered_load"],
+            marker="o",
+            label=f"TIIR $p_{{IAM}}$={p_iam:g}",
+            linewidth=LINE_WIDTH,
+            markersize=MARKER_SIZE,
+        )
+    plt.axhline(1.0, linestyle="-", linewidth=0.9, label="$\\rho=1.0$")
+    plt.axhline(0.7, linestyle="--", linewidth=0.9, label="$\\rho=0.7$")
+    plt.xlabel("Arrival rate λ (tickets/hour)")
+    plt.ylabel("Effective worker utilization $\\rho$")
+    plt.legend(fontsize=6.5, ncol=2)
+    plt.tight_layout(pad=0.35)
+    plt.savefig(os.path.join(outdir, "tiir_v9_worker_utilization_vs_lambda.png"), dpi=PLOT_DPI)
+    plt.close()
+
+    pivot = _pivot_worker_utilization(df_util)
+    x = pivot.columns.to_numpy(dtype=float)
+    y = pivot.index.to_numpy(dtype=float)
+    z = pivot.to_numpy(dtype=float)
+
+    plt.figure(figsize=(5.2, 2.35))
+    image = plt.imshow(
+        z,
+        origin="lower",
+        aspect="auto",
+        extent=[x.min(), x.max(), y.min(), y.max()],
+    )
+    if z.size and np.nanmin(z) <= 0.7 <= np.nanmax(z):
+        cs = plt.contour(x, y, z, levels=[0.7], linewidths=0.8)
+        plt.clabel(cs, inline=True, fontsize=7, fmt={0.7: "$\\rho=0.7$"})
+    if z.size and np.nanmin(z) <= 1.0 <= np.nanmax(z):
+        cs = plt.contour(x, y, z, levels=[1.0], linewidths=0.9)
+        plt.clabel(cs, inline=True, fontsize=7, fmt={1.0: "$\\rho=1.0$"})
+    plt.xlabel("IAM data quality $p_{IAM}$")
+    plt.ylabel("Arrival rate λ")
+    cbar = plt.colorbar(image)
+    cbar.set_label("Effective worker utilization $\\rho$")
+    plt.tight_layout(pad=0.35)
+    plt.savefig(os.path.join(outdir, "tiir_v9_worker_utilization_heatmap.png"), dpi=PLOT_DPI)
+    plt.close()
+
+
 def main() -> None:
     outdir = os.path.abspath("results_tiir_v9")
     cfg = ExperimentConfig()
@@ -988,6 +1151,8 @@ def main() -> None:
     plot_iam_quality_curves(df_iam, outdir)
     df_joint = joint_lambda_iam_sweep(cfg, outdir)
     plot_joint_lambda_iam_curves(df_joint, outdir)
+    df_util = worker_utilization_sweep(cfg, outdir)
+    plot_worker_utilization(df_util, outdir)
 
     if simpy is None:
         print("simpy not installed; used deterministic fallback DES for baseline + sweep + plots.")
