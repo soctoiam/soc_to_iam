@@ -1,6 +1,6 @@
 
 #!/usr/bin/env python3
-"""tiir_des_simulation_simpy_piam_lambda_surface_flatplots.py
+"""tiir_des_simulation_simpy_piam.py
 
 SimPy-based discrete-event simulation (DES) for routing-only workflows:
 time-to-correct-assignment (TTCA), extended with load-sweep plots, IAM-quality sensitivity with stale-vs-missing IAM defects.
