@@ -1,27 +1,9 @@
 
 #!/usr/bin/env python3
-"""tiir_des_simulation_simpy_v9_piam_lambda_surface_flatplots.py
+"""tiir_des_simulation_simpy_piam_lambda_surface_flatplots.py
 
 SimPy-based discrete-event simulation (DES) for routing-only workflows:
-time-to-correct-assignment (TTCA), extended with v6 load-sweep plots, IAM-quality sensitivity with stale-vs-missing IAM defects, and flatter paper figures.
-
-Additions relative to tiir_des_simulation_simpy_v6.py
------------------------------------------------------
-1. Restores the missing v3-style load-sweep artifacts with v6 calibration:
-   - tiir_v6_load_sweep.csv
-   - tiir_v6_load_mean.png
-   - tiir_v6_load_p95.png
-   - tiir_v6_load_sla.png
-   - tiir_v6_outcomes_vs_load.png
-   - tiir_v6_reassign_vs_load.png
-2. Preserves the original v6 baseline outputs and analytic snapshots.
-3. Includes a deterministic event-driven fallback when `simpy` is unavailable,
-   so the script can still generate the sweep and plots in minimal environments.
-4. Adds p_iam as IAM mapping correctness and splits IAM defects into stale/wrong-owner vs. missing/unusable mappings.
-   Stale IAM values cause auto-misroutes; missing IAM values cause abstention/manual fallback.
-5. Uses flatter figure geometry for paper-friendly plots.
-6. Adds a joint arrival-rate x IAM-quality sweep for surface/heatmap and selected-line figures.
-7. Adds effective human-router utilization / offered-load analysis that accounts for expected reassignment attempts.
+time-to-correct-assignment (TTCA), extended with load-sweep plots, IAM-quality sensitivity with stale-vs-missing IAM defects.
 
 Primary paper calibration:
 - Manual service time per attempt: mean 109.3 min, median 51.5 min, cap 26.3 h
@@ -155,7 +137,6 @@ class ExperimentConfig:
     # Defective IAM mappings are split into stale/wrong-owner mappings and missing/unusable mappings.
     # - stale/wrong-owner defects produce auto-misroutes,
     # - missing/unusable defects produce abstention/manual fallback.
-    # p_iam=1.0 reproduces v6.
     p_iam: float = 1.0
     iam_defect_misroute_share: float = 0.5
     p_iam_sweep: Tuple[float, ...] = (0.0, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
@@ -300,10 +281,9 @@ def outcome_probs(p: SOCSimParams) -> Tuple[float, float, float]:
 
 def expected_human_attempts_per_ticket(p: SOCSimParams, scenario: Scenario) -> float:
     """Expected number of human routing service attempts per arriving ticket.
-
     This is an offered-load diagnostic, not an observed busy-fraction from a finite DES run.
     It accounts for the expected additional human service attempts caused by reassignment.
-    Reroute delay is intentionally excluded because it is delay outside the human-router resource.
+    Reroute delay is intentionally excluded because it is a delay outside the human-router resource.
     """
     q = 1.0 - p.manual_misroute_rate
     if not (0.0 < q <= 1.0):
@@ -492,7 +472,6 @@ def run_once_simpy(cfg: ExperimentConfig, scenario: Scenario, seed: int) -> pd.D
 
 def run_once_fallback(cfg: ExperimentConfig, scenario: Scenario, seed: int) -> pd.DataFrame:
     """Event-driven fallback for environments without simpy.
-
     It preserves the same model semantics:
     - Poisson external arrivals
     - shared FCFS human-routing capacity
@@ -665,7 +644,7 @@ def aggregate_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
-    analytic_snapshot(cfg).to_csv(os.path.join(outdir, "tiir_v6_analytic_snapshot.csv"), index=False)
+    analytic_snapshot(cfg).to_csv(os.path.join(outdir, "tiir_analytic_snapshot.csv"), index=False)
 
     preset_rows = []
     for preset_name in cfg.timing_preset_sweep:
@@ -674,7 +653,7 @@ def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
         vals = {row["metric"]: row["value"] for _, row in snap.iterrows()}
         vals["timing_preset"] = preset_name
         preset_rows.append(vals)
-    pd.DataFrame(preset_rows).to_csv(os.path.join(outdir, "tiir_v6_timing_preset_snapshot.csv"), index=False)
+    pd.DataFrame(preset_rows).to_csv(os.path.join(outdir, "tiir_timing_preset_snapshot.csv"), index=False)
 
     util_rows = []
     p = params_from_cfg(cfg)
@@ -687,15 +666,15 @@ def save_analytic_bundle(cfg: ExperimentConfig, outdir: str) -> None:
                 "rho_tiir_lower_bound": lam * (p_abstain + p_auto_misroute) * p.manual_mean_min / (cfg.routers * 60.0),
             }
         )
-    pd.DataFrame(util_rows).to_csv(os.path.join(outdir, "tiir_v6_lower_bound_utilization.csv"), index=False)
+    pd.DataFrame(util_rows).to_csv(os.path.join(outdir, "tiir_lower_bound_utilization.csv"), index=False)
 
 
 def save_des_bundle(cfg: ExperimentConfig, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
     for scenario in ("manual", "tiir"):
         runs = summarize_runs(cfg, scenario)
-        runs.to_csv(os.path.join(outdir, f"tiir_v6_{scenario}_runs.csv"), index=False)
-        aggregate_summary(runs).to_csv(os.path.join(outdir, f"tiir_v6_{scenario}_summary.csv"), index=False)
+        runs.to_csv(os.path.join(outdir, f"tiir_{scenario}_runs.csv"), index=False)
+        aggregate_summary(runs).to_csv(os.path.join(outdir, f"tiir_{scenario}_summary.csv"), index=False)
 
 
 def load_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
@@ -732,13 +711,12 @@ def load_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
                         }
                     )
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(outdir, "tiir_v6_load_sweep.csv"), index=False)
+    df.to_csv(os.path.join(outdir, "tiir_load_sweep.csv"), index=False)
     return df
 
 
 def iam_quality_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
     """Sweep IAM mapping correctness p_iam at the default arrival rate.
-
     Semantics: defective IAM records are split into stale/wrong-owner mappings, which cause
     auto-misroutes, and missing/unusable mappings, which cause abstention/manual fallback.
     The empirical manual baseline is kept unchanged because its misrouting rate already
@@ -777,7 +755,7 @@ def iam_quality_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
                         }
                     )
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(outdir, "tiir_v8_piam_sweep.csv"), index=False)
+    df.to_csv(os.path.join(outdir, "tiir_piam_sweep.csv"), index=False)
     return df
 
 
@@ -787,9 +765,9 @@ def plot_iam_quality_curves(df_iam: pd.DataFrame, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
 
     for metric, fname, ylabel in [
-        ("mean_ttca", "tiir_v8_piam_mean.png", "Mean TTCA (min)"),
-        ("p95_ttca", "tiir_v8_piam_p95.png", "Global P95 TTCA (min)"),
-        ("sla_viol_rate", "tiir_v8_piam_sla.png", "SLA violation rate"),
+        ("mean_ttca", "tiir_piam_mean.png", "Mean TTCA (min)"),
+        ("p95_ttca", "tiir_piam_p95.png", "Global P95 TTCA (min)"),
+        ("sla_viol_rate", "tiir_piam_sla.png", "SLA violation rate"),
     ]:
         plt.figure(figsize=FIGSIZE_FLAT)
         for scenario in ["manual", "tiir"]:
@@ -814,7 +792,7 @@ def plot_iam_quality_curves(df_iam: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Outcome rate")
     plt.legend(fontsize=8)
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v8_piam_outcomes.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_piam_outcomes.png"), dpi=PLOT_DPI)
     plt.close()
 
 
@@ -824,9 +802,9 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     os.makedirs(outdir, exist_ok=True)
 
     for metric, fname, ylabel in [
-        ("mean_ttca", "tiir_v6_load_mean.png", "Mean TTCA (min)"),
-        ("p95_ttca", "tiir_v6_load_p95.png", "Global P95 TTCA (min)"),
-        ("sla_viol_rate", "tiir_v6_load_sla.png", "SLA violation rate"),
+        ("mean_ttca", "tiir_load_mean.png", "Mean TTCA (min)"),
+        ("p95_ttca", "tiir_load_p95.png", "Global P95 TTCA (min)"),
+        ("sla_viol_rate", "tiir_load_sla.png", "SLA violation rate"),
     ]:
         plt.figure(figsize=FIGSIZE_FLAT)
         for scenario in ["manual", "tiir"]:
@@ -851,7 +829,7 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Outcome rate")
     plt.legend(fontsize=8)
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v6_outcomes_vs_load.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_outcomes_vs_load.png"), dpi=PLOT_DPI)
     plt.close()
 
     plt.figure(figsize=FIGSIZE_FLAT)
@@ -862,7 +840,7 @@ def plot_load_curves(df_load: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Human reassignment rate")
     plt.legend(fontsize=8)
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v6_reassign_vs_load.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_reassign_vs_load.png"), dpi=PLOT_DPI)
     plt.close()
 
 
@@ -936,7 +914,7 @@ def joint_lambda_iam_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
                 )
 
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(outdir, "tiir_v9_lambda_piam_sweep.csv"), index=False)
+    df.to_csv(os.path.join(outdir, "tiir_lambda_piam_sweep.csv"), index=False)
     return df
 
 
@@ -988,14 +966,14 @@ def plot_joint_lambda_iam_curves(df_joint: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Mean TTCA (min)")
     plt.legend(fontsize=7, ncol=2)
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v9_lambda_piam_mean_lines.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_lambda_piam_mean_lines.png"), dpi=PLOT_DPI)
     plt.close()
 
     heatmap_specs = [
-        ("mean_ttca", "tiir_mean", "tiir_v9_lambda_piam_mean_heatmap.png", "TIIR mean TTCA (min)"),
-        ("mean_ttca", "reduction_pct", "tiir_v9_lambda_piam_mean_reduction_heatmap.png", "Mean TTCA reduction vs. manual (%)"),
-        ("p95_ttca", "tiir_mean", "tiir_v9_lambda_piam_p95_heatmap.png", "TIIR P95 TTCA (min)"),
-        ("sla_viol_rate", "tiir_mean", "tiir_v9_lambda_piam_sla_heatmap.png", "TIIR SLA violation rate"),
+        ("mean_ttca", "tiir_mean", "tiir_lambda_piam_mean_heatmap.png", "TIIR mean TTCA (min)"),
+        ("mean_ttca", "reduction_pct", "tiir_lambda_piam_mean_reduction_heatmap.png", "Mean TTCA reduction vs. manual (%)"),
+        ("p95_ttca", "tiir_mean", "tiir_lambda_piam_p95_heatmap.png", "TIIR P95 TTCA (min)"),
+        ("sla_viol_rate", "tiir_mean", "tiir_lambda_piam_sla_heatmap.png", "TIIR SLA violation rate"),
     ]
 
     for metric, value_col, fname, cbar_label in heatmap_specs:
@@ -1023,7 +1001,6 @@ def plot_joint_lambda_iam_curves(df_joint: pd.DataFrame, outdir: str) -> None:
 
 def worker_utilization_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame:
     """Analytical effective worker-utilization sweep over lambda and p_iam.
-
     This diagnostic complements the finite DES output. It is an offered-load / traffic-intensity
     calculation and can exceed 1.0. The observed DES busy fraction of a finite run cannot exceed 1.0.
     """
@@ -1059,7 +1036,7 @@ def worker_utilization_sweep(cfg: ExperimentConfig, outdir: str) -> pd.DataFrame
             )
 
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(outdir, "tiir_v9_effective_worker_utilization.csv"), index=False)
+    df.to_csv(os.path.join(outdir, "tiir_effective_worker_utilization.csv"), index=False)
     return df
 
 
@@ -1070,10 +1047,9 @@ def _pivot_worker_utilization(df_util: pd.DataFrame) -> pd.DataFrame:
 
 def plot_worker_utilization(df_util: pd.DataFrame, outdir: str) -> None:
     """Plot effective worker offered-load utilization.
-
     Generated figures:
-    - tiir_v9_worker_utilization_vs_lambda.png
-    - tiir_v9_worker_utilization_heatmap.png
+    - tiir_worker_utilization_vs_lambda.png
+    - tiir_worker_utilization_heatmap.png
     """
     import matplotlib.pyplot as plt
 
@@ -1109,7 +1085,7 @@ def plot_worker_utilization(df_util: pd.DataFrame, outdir: str) -> None:
     plt.ylabel("Effective worker utilization $\\rho$")
     plt.legend(fontsize=6.5, ncol=2)
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v9_worker_utilization_vs_lambda.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_worker_utilization_vs_lambda.png"), dpi=PLOT_DPI)
     plt.close()
 
     pivot = _pivot_worker_utilization(df_util)
@@ -1135,12 +1111,12 @@ def plot_worker_utilization(df_util: pd.DataFrame, outdir: str) -> None:
     cbar = plt.colorbar(image)
     cbar.set_label("Effective worker utilization $\\rho$")
     plt.tight_layout(pad=0.35)
-    plt.savefig(os.path.join(outdir, "tiir_v9_worker_utilization_heatmap.png"), dpi=PLOT_DPI)
+    plt.savefig(os.path.join(outdir, "tiir_worker_utilization_heatmap.png"), dpi=PLOT_DPI)
     plt.close()
 
 
 def main() -> None:
-    outdir = os.path.abspath("results_tiir_v9")
+    outdir = os.path.abspath("results_tiir")
     cfg = ExperimentConfig()
 
     save_analytic_bundle(cfg, outdir)
